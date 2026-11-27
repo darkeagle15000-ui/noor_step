@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183d36">
+  <title>JEJAK NUR — A Life of Faith & Adventure</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">✦</div>
+        <div>
+          <div class="brand-name">JEJAK NUR</div>
+          <div class="brand-subtitle">A LIFE OF FAITH &amp; ADVENTURE</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-button" id="helpButton" type="button" title="Bantuan">?</button>
+        <button class="icon-button" id="saveButton" type="button" title="Simpan progres">▣</button>
+      </div>
+    </header>
+
+    <section class="statusbar" aria-label="Status permainan">
+      <div class="status-card time-card">
+        <span class="status-icon" id="weatherIcon">☀</span>
+        <div><span class="status-label">HARI <b id="dayLabel">1</b></span><strong id="clockLabel">08:00</strong></div>
+      </div>
+      <div class="status-card prayer-card">
+        <span class="status-icon">☾</span>
+        <div><span class="status-label">WAKTU SALAT BERIKUTNYA</span><strong id="prayerLabel">Zuhur · 12:10</strong></div>
+      </div>
+      <div class="status-card coin-card">
+        <span class="coin-icon">◈</span>
+        <div><span class="status-label">KOIN</span><strong id="coinLabel">120</strong></div>
+      </div>
+    </section>
+
+    <section class="game-frame" aria-label="Area permainan">
+      <div class="canvas-wrap">
+        <canvas id="game" width="640" height="400" aria-label="Game Jejak Nur. Gunakan tombol panah atau WASD untuk bergerak."></canvas>
+        <div class="location-pill"><span class="location-dot"></span><span id="locationLabel">Kota Nuraya</span></div>
+        <div class="minimap-frame"><canvas id="minimap" width="144" height="108" aria-label="Peta mini"></canvas></div>
+        <div class="interaction-hint" id="interactionHint">Tekan <kbd>E</kbd> untuk berinteraksi</div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </div>
+      <div class="game-footer">
+        <div class="footer-tip"><span class="tip-key">WASD</span> / <span class="tip-key">↑ ↓ ← →</span> Bergerak <span class="tip-separator">•</span> <span class="tip-key">E</span> Interaksi</div>
+        <div class="footer-actions">
+          <button class="small-button" id="journalButton" type="button">▤ Jurnal</button>
+          <button class="small-button" id="bagButton" type="button">▣ Tas <span id="itemCount">0</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="mobile-controls" aria-label="Kontrol sentuh">
+      <div class="dpad">
+        <button class="dpad-button up" data-dir="up" aria-label="Atas">▲</button>
+        <button class="dpad-button left" data-dir="left" aria-label="Kiri">◀</button>
+        <button class="dpad-button down" data-dir="down" aria-label="Bawah">▼</button>
+        <button class="dpad-button right" data-dir="right" aria-label="Kanan">▶</button>
+      </div>
+      <button class="interact-button" id="mobileInteract" type="button"><span>✦</span> INTERAKSI</button>
+    </section>
+
+    <footer class="page-footer">
+      <span>PROTOTIPE 0.1</span><span>Jelajahi, temukan, dan bangun kisahmu di Nuraya.</span>
+    </footer>
+  </main>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <section class="game-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-topline"><span class="modal-eyebrow" id="modalEyebrow">JEJAK NUR</span><button class="modal-close" id="modalClose" type="button" aria-label="Tutup">×</button></div>
+      <h2 id="modalTitle">Selamat datang</h2>
+      <div class="modal-content" id="modalContent"></div>
+      <div class="modal-actions" id="modalActions"></div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
