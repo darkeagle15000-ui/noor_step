@@ -1,45 +1,36 @@
-JEJAK NUR — PROTOTIPE 0.2
-A Life of Faith & Adventure · Cozy Arabian Top-Down Pixel RPG
+JEJAK NUR — PROTOTIPE v0.3
+A Life of Faith & Adventure
 
-CARA MENJALANKAN SECARA LOKAL
-1. Simpan index.html, style.css, dan script.js di dalam satu folder yang sama.
-2. Buka index.html dengan browser (Chrome, Firefox, atau Edge).
-3. Tidak memerlukan instalasi, server, atau API key. Font web hanya bersifat opsional.
+UPDATE v0.3
+- Sprite karakter diganti menjadi chibi pixel-art orisinal.
+- Kepala besar, wajah dengan mata besar, badan mungil, tangan dan kaki pendek.
+- Delapan variasi tampilan karakter/NPC dengan pakaian dan penutup kepala berbeda.
+- Empat arah hadap (bawah, kiri, kanan, atas) dan empat frame langkah berjalan.
+- Sprite dirender dengan pixel scaling agar tetap tajam.
+- Dunia luas, NPC bergerak, percakapan, pintu/interior, pasar dan sistem sebelumnya tetap disertakan.
+
+CARA MENJALANKAN
+1. Ekstrak ZIP.
+2. Pastikan struktur folder tidak diubah:
+   index.html
+   style.css
+   script.js
+   assets/chibi-sprites.png
+3. Buka index.html di browser.
+
+PENTING UNTUK GITHUB + CLOUDFLARE PAGES
+- Ganti index.html, style.css, dan script.js di repository dengan versi dari ZIP ini.
+- Upload juga folder assets beserta file chibi-sprites.png.
+- Pastikan folder assets berada sejajar dengan index.html (bukan di folder lain).
+- Commit changes ke branch production (umumnya main).
+- Cloudflare Pages akan deploy ulang secara otomatis.
 
 KONTROL
-- WASD atau tombol panah: bergerak ke empat arah
-- E atau Enter: berbicara, berinteraksi, masuk pintu, atau keluar bangunan
-- I: membuka tas
-- J: membuka jurnal
-- H: membuka panduan
-- Escape: menutup jendela
-- Ponsel: gunakan D-pad dan tombol INTERAKSI
+WASD / tombol panah : bergerak
+E / Enter            : interaksi, bicara, masuk/keluar bangunan
+I                    : tas
+J                    : jurnal
+H                    : bantuan
+ESC                  : tutup jendela
 
-FITUR PROTOTIPE 0.2
-- Dunia gurun dan oasis berukuran 180 × 140 tile (5.760 × 4.480 pixel dunia).
-- Beberapa kawasan: Kota Nuraya, Oasis Utara, Pelabuhan Barat, Kebun Kurma Timur, Taman Oasis Timur, Lembah Selatan, dan Reruntuhan Selatan.
-- Karakter bergaya chibi pixel orisinal, dengan empat arah dan animasi langkah.
-- Sembilan NPC yang bergerak di area tempat tinggalnya, berhenti, dan menghadap pemain saat diajak bicara.
-- Bangunan dengan interior yang dapat dimasuki dan pintu keluar yang dapat digunakan.
-- Kamera mengikuti pemain, depth sorting untuk pepohonan/bangunan/karakter, dan peta mini seluruh dunia.
-- Pasar, barang, tas, jurnal misi sederhana, jam simulasi, pergantian pencahayaan, dan pengingat waktu salat simulasi.
-- Penyimpanan progres di browser menggunakan localStorage.
-
-PENTING UNTUK UPDATE GITHUB + CLOUDFLARE PAGES
-1. Ekstrak ZIP ini di komputer.
-2. Buka repository JEJAK NUR di GitHub.
-3. Ganti file lama index.html, style.css, dan script.js dengan file versi 0.2 ini. Pastikan ketiganya berada di folder utama repository yang sama (kecuali Root directory Cloudflare memang diarahkan ke subfolder).
-4. Commit perubahan, lalu Push ke branch production (biasanya main).
-5. Cloudflare Pages akan menjalankan deployment otomatis. Buka Deployments di Cloudflare untuk memastikan statusnya Success.
-6. Muat ulang website. Jika versi lama masih terlihat, lakukan hard refresh (Ctrl + Shift + R).
-
-KONFIGURASI CLOUDFLARE PAGES UNTUK HTML STATIS
-- Framework preset: None
-- Build command: exit 0 (atau kosong jika dashboard mengizinkannya)
-- Build output directory: .
-- Root directory: / jika file index.html berada di root repository.
-
-CATATAN
-- Gaya karakter adalah desain pixel chibi orisinal, bukan aset atau karakter Pokémon.
-- Jadwal salat pada prototipe ini adalah jadwal simulasi fiktif untuk gameplay, bukan jadwal ibadah nyata.
-- Map ini dibuat secara prosedural di Canvas; versi berikutnya masih dapat menambah interior, quest, serta detail aset.
+Catatan: jadwal salat masih berupa waktu simulasi dalam game, bukan jadwal ibadah nyata.

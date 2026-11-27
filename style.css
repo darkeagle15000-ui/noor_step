@@ -119,3 +119,6 @@ kbd, .tip-key { padding: 2px 5px; border-radius: 4px; background: rgba(240,225,1
 #game, #minimap { image-rendering: pixelated; image-rendering: crisp-edges; }
 @media (min-width: 900px) { .game-frame { padding: 12px; } .minimap-frame { width: 166px; } }
 @media (max-width: 620px) { .minimap-frame { width: 88px; } }
+
+/* v0.3 — chibi sprites are drawn as nearest-neighbour pixel art. */
+#game { image-rendering: pixelated; image-rendering: crisp-edges; }

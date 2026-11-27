@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  // JEJAK NUR — playable browser prototype, version 0.2
+  // JEJAK NUR — playable browser prototype, version 0.3
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const mini = document.getElementById('minimap');
@@ -394,6 +394,11 @@
     child:{robe:'#d37b61',shade:'#954f4c',light:'#f0ad84',wrap:'#e8d4b3',wrapShade:'#bba27d',skin:'#c48765',hair:'#4b342b',boots:'#624638',gold:'#f0cf83'}
   };
   const spriteCache=new Map();
+  // Original chibi sprite atlas: 8 character looks × 4 directions × 4 walk frames.
+  const chibiAtlas = new Image();
+  chibiAtlas.src = 'assets/chibi-sprites.png';
+  const chibiPaletteRows = { player:0, merchant:1, gardener:2, traveler:3, guard:4, scholar:5, fisher:6, child:7 };
+  const chibiDirectionRows = { down:0, left:1, right:2, up:3 };
   function makeSprite(paletteName,dir,frame){
     const key=`${paletteName}:${dir}:${frame}`;if(spriteCache.has(key))return spriteCache.get(key);
     const p=spritePalettes[paletteName]||spritePalettes.player;
@@ -418,10 +423,27 @@
     spriteCache.set(key,c);return c;
   }
   function drawActor(actor,isPlayer=false){
-    const sx=Math.round(actor.x-camera.x),sy=Math.round(actor.y-camera.y),frame=actor.moving?Math.floor(actor.walk/2.4)%4:0,bob=actor.moving?Math.round(Math.abs(Math.sin(actor.walk))*1.5):0;
-    ctx.fillStyle='rgba(38,39,29,.26)';ctx.fillRect(sx-12,sy-3,24,8);
-    ctx.drawImage(makeSprite(actor.palette||'player',actor.dir,frame),sx-24,sy-61-bob,48,64);
-    if(!isPlayer&&Math.hypot(player.x-actor.x,player.y-actor.y)<78){ctx.fillStyle='rgba(255,245,215,.96)';ctx.font='bold 11px Manrope,sans-serif';ctx.textAlign='center';ctx.fillText(actor.name,sx,sy-67-bob);}
+    const sx=Math.round(actor.x-camera.x),sy=Math.round(actor.y-camera.y);
+    const frame=actor.moving?Math.floor(actor.walk/2.1)%4:0;
+    const bob=actor.moving?Math.round(Math.abs(Math.sin(actor.walk))*1.2):0;
+    ctx.fillStyle='rgba(38,29,22,.30)';
+    ctx.beginPath();ctx.ellipse(sx,sy-1,13,5,0,0,Math.PI*2);ctx.fill();
+    const paletteRow=chibiPaletteRows[actor.palette||'player']??0;
+    const directionRow=chibiDirectionRows[actor.dir]??0;
+    if(chibiAtlas.complete&&chibiAtlas.naturalWidth>0){
+      // 32×40 pixel sprites are scaled with smoothing disabled for crisp chunky pixels.
+      ctx.drawImage(chibiAtlas,frame*32,(paletteRow*4+directionRow)*40,32,40,sx-29,sy-69-bob,58,72);
+    }else{
+      // Brief fallback while the sprite atlas loads.
+      ctx.drawImage(makeSprite(actor.palette||'player',actor.dir,frame),sx-25,sy-62-bob,50,64);
+    }
+    if(!isPlayer&&Math.hypot(player.x-actor.x,player.y-actor.y)<86){
+      ctx.font='bold 11px Manrope,sans-serif';ctx.textAlign='center';
+      const label=actor.name,w=ctx.measureText(label).width+14;
+      ctx.fillStyle='rgba(34,43,34,.88)';ctx.fillRect(sx-w/2,sy-81-bob,w,17);
+      ctx.strokeStyle='rgba(240,211,151,.65)';ctx.strokeRect(sx-w/2,sy-81-bob,w,17);
+      ctx.fillStyle='#fff0cf';ctx.fillText(label,sx,sy-69-bob);
+    }
   }
   function drawNPC(n,time){drawActor(n,false);}
   function drawPlayer(time){drawActor(player,true);}
