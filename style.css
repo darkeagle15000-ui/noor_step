@@ -122,3 +122,75 @@ kbd, .tip-key { padding: 2px 5px; border-radius: 4px; background: rgba(240,225,1
 
 /* v0.3 — chibi sprites are drawn as nearest-neighbour pixel art. */
 #game { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+
+/* JEJAK NUR v0.4 — warm oasis UI and an always-visible quest guide. */
+:root {
+  --bg: #17251f;
+  --panel: #23382e;
+  --panel-2: #2b4638;
+  --cream: #fff0d0;
+  --muted: #c2c7a9;
+  --gold: #f0c56f;
+  --green: #9fc78d;
+}
+body {
+  background:
+    radial-gradient(ellipse at 50% -18%, rgba(105,137,91,.35), transparent 48%),
+    linear-gradient(145deg, #1b2c25 0%, #14211c 62%, #101b17 100%);
+}
+.game-frame {
+  background: linear-gradient(145deg, #3e5b43, #243a30 58%, #1b3028);
+  border-color: rgba(247,220,165,.28);
+  box-shadow: 0 24px 65px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.06);
+}
+.canvas-wrap { background: #d8b77b; }
+.quest-panel {
+  position: absolute;
+  z-index: 2;
+  left: 12px;
+  top: 54px;
+  width: min(250px, calc(100% - 190px));
+  min-width: 170px;
+  padding: 10px 12px 9px;
+  border: 1px solid rgba(247,218,157,.48);
+  border-radius: 11px;
+  background: linear-gradient(145deg, rgba(48,61,43,.94), rgba(29,47,36,.94));
+  color: #fff1d2;
+  box-shadow: 0 7px 20px rgba(33,32,20,.25);
+  line-height: 1.35;
+  backdrop-filter: blur(5px);
+}
+.quest-kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  color: #f4cb78;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+.quest-kicker span { font-size: 12px; }
+.quest-panel strong { display: block; color: #fff0d0; font: 800 11px 'Manrope',sans-serif; }
+.quest-panel p { margin: 4px 0 6px; color: #e2dfc8; font-size: 9px; line-height: 1.45; }
+.quest-panel small { display: inline-block; padding: 3px 6px; border-radius: 5px; background: rgba(238,194,104,.15); color: #f4d68d; font-size: 8px; font-weight: 700; }
+.location-pill { background: rgba(34,50,37,.91); border-color: rgba(251,224,173,.34); }
+.minimap-frame { border-color: rgba(251,224,173,.44); box-shadow: 0 6px 16px rgba(24,29,21,.22); }
+.interaction-hint { background: rgba(38,55,39,.96); border-color: rgba(245,210,140,.45); box-shadow: 0 4px 12px rgba(0,0,0,.24); }
+.toast { background: rgba(41,58,43,.97); border-color: rgba(245,210,140,.42); box-shadow: 0 8px 22px rgba(0,0,0,.22); }
+.status-card { background: linear-gradient(140deg, rgba(48,75,56,.97), rgba(32,53,41,.97)); border-color: rgba(239,218,169,.2); }
+.icon-button, .small-button { background: #2c4938; }
+.game-modal { background: linear-gradient(145deg, #35543f, #1d362b); }
+.modal-action { background: linear-gradient(145deg, #edc77e, #c99752); }
+@media (max-width: 620px) {
+  .quest-panel { top: 52px; left: 8px; width: 175px; min-width: 0; padding: 7px 8px; }
+  .quest-panel strong { font-size: 9px; }
+  .quest-panel p { font-size: 8px; }
+  .quest-panel small { font-size: 7px; }
+}
+
+
+/* JEJAK NUR v0.5 — softer chibi scale and improved quest panel. */
+.quest-panel { border-color: rgba(246,220,161,.58); box-shadow: 0 8px 22px rgba(34,35,21,.32), inset 0 1px rgba(255,255,255,.08); }
+#game { background: #d8b77b; }
