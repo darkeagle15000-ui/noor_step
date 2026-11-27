@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#183d36">
+  <meta name="description" content="JEJAK NUR — cozy Arabian top-down pixel RPG life simulator.">
   <title>JEJAK NUR — A Life of Faith & Adventure</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -14,7 +15,7 @@
         <div class="brand-mark" aria-hidden="true">✦</div>
         <div>
           <div class="brand-name">JEJAK NUR</div>
-          <div class="brand-subtitle">A LIFE OF FAITH &amp; ADVENTURE</div>
+          <div class="brand-subtitle">A LIFE OF FAITH &amp; ADVENTURE · PIXEL RPG</div>
         </div>
       </div>
       <div class="topbar-actions">
@@ -40,14 +41,14 @@
 
     <section class="game-frame" aria-label="Area permainan">
       <div class="canvas-wrap">
-        <canvas id="game" width="640" height="400" aria-label="Game Jejak Nur. Gunakan tombol panah atau WASD untuk bergerak."></canvas>
+        <canvas id="game" width="960" height="600" aria-label="Game JEJAK NUR. Gunakan tombol panah atau WASD untuk bergerak dan tekan E untuk berinteraksi."></canvas>
         <div class="location-pill"><span class="location-dot"></span><span id="locationLabel">Kota Nuraya</span></div>
-        <div class="minimap-frame"><canvas id="minimap" width="144" height="108" aria-label="Peta mini"></canvas></div>
+        <div class="minimap-frame"><canvas id="minimap" width="180" height="140" aria-label="Peta mini dunia Nuraya"></canvas></div>
         <div class="interaction-hint" id="interactionHint">Tekan <kbd>E</kbd> untuk berinteraksi</div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
       </div>
       <div class="game-footer">
-        <div class="footer-tip"><span class="tip-key">WASD</span> / <span class="tip-key">↑ ↓ ← →</span> Bergerak <span class="tip-separator">•</span> <span class="tip-key">E</span> Interaksi</div>
+        <div class="footer-tip"><span class="tip-key">WASD</span> / <span class="tip-key">↑ ↓ ← →</span> Bergerak <span class="tip-separator">•</span> <span class="tip-key">E</span> Bicara / masuk pintu <span class="tip-separator">•</span> <span class="tip-key">I</span> Tas</div>
         <div class="footer-actions">
           <button class="small-button" id="journalButton" type="button">▤ Jurnal</button>
           <button class="small-button" id="bagButton" type="button">▣ Tas <span id="itemCount">0</span></button>
@@ -66,7 +67,7 @@
     </section>
 
     <footer class="page-footer">
-      <span>PROTOTIPE 0.1</span><span>Jelajahi, temukan, dan bangun kisahmu di Nuraya.</span>
+      <span>PROTOTIPE 0.2 · DUNIA 180 × 140 TILE</span><span>Jelajahi oasis, temui warga, dan temukan tempat baru di Nuraya.</span>
     </footer>
   </main>
 

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  // JEJAK NUR — playable browser prototype, version 0.1
+  // JEJAK NUR — playable browser prototype, version 0.2
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const mini = document.getElementById('minimap');
@@ -10,8 +10,8 @@
   mctx.imageSmoothingEnabled = false;
 
   const TILE = 32;
-  const MAP_W = 48;
-  const MAP_H = 36;
+  const MAP_W = 180;
+  const MAP_H = 140;
   const WORLD_W = MAP_W * TILE;
   const WORLD_H = MAP_H * TILE;
   const VIEW_W = canvas.width;
@@ -22,92 +22,90 @@
     return n - Math.floor(n);
   };
 
-  const T = { SAND: 0, GRASS: 1, ROAD: 2, STONE: 3, WATER: 4, DIRT: 5, TILE: 6 };
+  const T = { SAND: 0, GRASS: 1, ROAD: 2, STONE: 3, WATER: 4, DIRT: 5, TILE: 6, DECK: 7 };
   const map = Array.from({ length: MAP_H }, () => Array(MAP_W).fill(T.SAND));
-  const setTile = (x, y, value) => { if (x >= 0 && y >= 0 && x < MAP_W && y < MAP_H) map[y][x] = value; };
-  const rectTiles = (x, y, w, h, value) => {
-    for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) setTile(xx, yy, value);
-  };
-
-  // Green gardens and sandy paths form the oasis town of Nuraya.
-  rectTiles(2, 2, 44, 32, T.GRASS);
-  // Soft sandy outskirts and dunes.
-  rectTiles(0, 0, MAP_W, 2, T.SAND);
-  rectTiles(0, 34, MAP_W, 2, T.SAND);
-  rectTiles(0, 0, 2, MAP_H, T.SAND);
-  rectTiles(46, 0, 2, MAP_H, T.SAND);
-  // Main roads and plaza.
-  rectTiles(3, 18, 42, 3, T.ROAD);
-  rectTiles(23, 3, 3, 31, T.ROAD);
-  rectTiles(8, 9, 17, 2, T.ROAD);
-  rectTiles(27, 14, 15, 2, T.ROAD);
-  rectTiles(13, 20, 2, 10, T.ROAD);
-  rectTiles(34, 20, 2, 12, T.ROAD);
-  rectTiles(18, 25, 17, 2, T.ROAD);
-  rectTiles(20, 30, 8, 2, T.ROAD);
-  rectTiles(17, 13, 13, 5, T.STONE);
-  // Market square and mosque courtyard.
-  rectTiles(29, 12, 12, 7, T.STONE);
-  rectTiles(18, 11, 12, 7, T.STONE);
-  // Farmland.
-  rectTiles(36, 27, 8, 6, T.DIRT);
-  for (let x = 36; x < 44; x += 2) rectTiles(x, 27, 1, 6, T.TILE);
-  // Little oasis pond.
-  for (let y = 4; y <= 11; y++) {
-    for (let x = 4; x <= 13; x++) {
-      const d = ((x - 8.5) ** 2) / 24 + ((y - 7.5) ** 2) / 12;
-      if (d < 1) setTile(x, y, T.WATER);
+  const setTile = (x,y,v) => { if(x>=0&&y>=0&&x<MAP_W&&y<MAP_H) map[y][x]=v; };
+  const rectTiles = (x,y,w,h,v) => { for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)setTile(xx,yy,v); };
+  function ellipseTiles(cx,cy,rx,ry,v){
+    for(let y=Math.floor(cy-ry-1);y<=cy+ry+1;y++)for(let x=Math.floor(cx-rx-1);x<=cx+rx+1;x++){
+      const d=((x-cx)/rx)**2+((y-cy)/ry)**2;
+      if(d<=1+(rand(x,y,41)-.5)*.16)setTile(x,y,v);
     }
   }
-  // A small stream at the eastern edge.
-  for (let y = 21; y < 34; y++) {
-    const x = 44 + (y % 5 === 0 ? 1 : 0);
-    setTile(x, y, T.WATER);
+  function roadLine(x1,y1,x2,y2,width=3){
+    const steps=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));
+    for(let i=0;i<=steps;i++){
+      const t=steps?i/steps:0,x=Math.round(x1+(x2-x1)*t),y=Math.round(y1+(y2-y1)*t);
+      for(let yy=-Math.floor(width/2);yy<=Math.floor(width/2);yy++)for(let xx=-Math.floor(width/2);xx<=Math.floor(width/2);xx++)if(xx*xx+yy*yy<=width*width/2)setTile(x+xx,y+yy,T.ROAD);
+    }
   }
-  // Bridge across the stream.
-  rectTiles(42, 28, 4, 2, T.ROAD);
-
+  // Oasis regions and little settlements are scattered across a very large desert.
+  ellipseTiles(90,70,40,31,T.GRASS);       // Nuraya, main town
+  ellipseTiles(35,72,23,19,T.GRASS);       // western fishing village
+  ellipseTiles(87,19,22,17,T.GRASS);      // north oasis village
+  ellipseTiles(143,80,25,21,T.GRASS);     // eastern date farms
+  ellipseTiles(144,25,18,14,T.GRASS);     // eastern garden
+  ellipseTiles(43,119,20,14,T.GRASS);     // southern rest stop
+  roadLine(90,70,34,72,4); roadLine(90,70,88,20,4); roadLine(90,70,143,80,4);
+  roadLine(90,70,144,26,3); roadLine(90,70,44,119,3); roadLine(90,70,88,132,3);
+  roadLine(34,72,10,49,2); roadLine(143,80,169,109,2);
+  rectTiles(70,54,42,35,T.GRASS); rectTiles(75,64,31,18,T.STONE);
+  roadLine(89,42,90,103,3); roadLine(62,72,119,72,3); roadLine(76,58,105,58,2); roadLine(77,91,106,91,2);
+  rectTiles(83,62,15,7,T.STONE);
+  ellipseTiles(62,54,8,5,T.WATER); ellipseTiles(87,12,6,3,T.WATER); ellipseTiles(32,65,7,4,T.WATER); ellipseTiles(151,75,8,5,T.WATER);
+  for(let y=15;y<129;y++){const x=Math.round(124+Math.sin(y*.095)*6+Math.sin(y*.23)*2);setTile(x,y,T.WATER);if(y%4!==0)setTile(x+1,y,T.WATER);}
+  rectTiles(118,47,12,3,T.DECK); rectTiles(119,104,12,3,T.DECK); rectTiles(29,70,7,3,T.DECK);
+  rectTiles(132,86,24,16,T.DIRT); for(let y=87;y<101;y+=2)rectTiles(133,y,22,1,T.TILE);
+  rectTiles(148,56,13,9,T.DIRT); for(let x=149;x<160;x+=2)rectTiles(x,57,1,7,T.TILE);
+  rectTiles(29,86,12,7,T.DIRT); ellipseTiles(159,121,14,10,T.STONE); roadLine(143,80,159,121,2);
   const buildings = [
-    { id: 'mosque', name: 'Masjid Al-Qamar', x: 19, y: 4, w: 8, h: 7, kind: 'mosque', interactX: 23 * TILE + 16, interactY: 12 * TILE + 12 },
-    { id: 'house', name: 'Rumah keluarga Salim', x: 4, y: 23, w: 7, h: 5, kind: 'house', interactX: 7 * TILE + 16, interactY: 28 * TILE + 10 },
-    { id: 'inn', name: 'Penginapan Safa', x: 38, y: 5, w: 7, h: 5, kind: 'inn', interactX: 41 * TILE + 16, interactY: 10 * TILE + 10 },
-    { id: 'library', name: 'Rumah Ilmu', x: 3, y: 13, w: 6, h: 4, kind: 'library', interactX: 6 * TILE + 16, interactY: 17 * TILE + 8 },
+    { id:'mosque',name:'Masjid Al-Qamar',x:83,y:45,w:14,h:13,kind:'mosque',interactX:90*TILE,interactY:58*TILE-7 },
+    { id:'library',name:'Rumah Ilmu',x:70,y:76,w:7,h:6,kind:'library',interactX:73.5*TILE,interactY:82*TILE-7 },
+    { id:'inn',name:'Penginapan Safa',x:103,y:76,w:8,h:6,kind:'inn',interactX:107*TILE,interactY:82*TILE-7 },
+    { id:'house',name:'Rumah keluarga Salim',x:69,y:91,w:7,h:6,kind:'house',interactX:72.5*TILE,interactY:97*TILE-7 },
+    { id:'house2',name:'Rumah keluarga Amina',x:104,y:91,w:7,h:6,kind:'house',interactX:107.5*TILE,interactY:97*TILE-7 },
+    { id:'northHouse',name:'Rumah penjaga oasis utara',x:81,y:6,w:7,h:6,kind:'house',interactX:84.5*TILE,interactY:12*TILE-7 },
+    { id:'harborHouse',name:'Rumah nelayan',x:27,y:78,w:7,h:6,kind:'house',interactX:30.5*TILE,interactY:84*TILE-7 },
+    { id:'farmHouse',name:'Rumah kebun kurma',x:139,y:88,w:7,h:6,kind:'house',interactX:142.5*TILE,interactY:94*TILE-7 },
   ];
-
   const stalls = [
-    { x: 30, y: 13, w: 3, h: 3, color: '#b85d45', cloth: '#e5b36b' },
-    { x: 34, y: 13, w: 3, h: 3, color: '#628a71', cloth: '#e7d09b' },
-    { x: 38, y: 13, w: 3, h: 3, color: '#8b6a9a', cloth: '#e6b77e' },
+    {x:80,y:62,w:4,h:3,color:'#b95f49',cloth:'#f0c27e'},
+    {x:87,y:62,w:4,h:3,color:'#668b72',cloth:'#ead8a9'},
+    {x:94,y:62,w:4,h:3,color:'#8872a1',cloth:'#edc48c'},
+    {x:101,y:62,w:4,h:3,color:'#b47a48',cloth:'#e9d19c'},
+    {x:29,y:67,w:3,h:3,color:'#bd7451',cloth:'#e9c68a'},
   ];
-
-  const trees = [
-    [3,3],[15,3],[16,5],[31,4],[34,4],[46,4],[2,9],[15,8],[16,10],[28,4],
-    [11,14],[14,14],[17,14],[28,22],[30,23],[32,23],[39,23],[42,23],[5,30],
-    [10,32],[17,32],[29,33],[32,31],[45,17],[46,18],[3,21],[12,23],[17,23]
-  ].map(([x,y],i)=>({x:x*TILE+16,y:y*TILE+18,variant:i%3}));
-
-  const rocks = [[3,11],[14,6],[16,18],[28,29],[32,8],[42,11],[13,31],[45,31],[10,19],[30,5]];
-  const cacti = [[11,3],[43,3],[2,29],[46,13],[32,33],[18,5]];
+  const trees=[]; const rocks=[]; const cacti=[];
+  for(let y=3;y<MAP_H-3;y++)for(let x=3;x<MAP_W-3;x++){
+    const v=rand(x,y,8),type=map[y][x];
+    if(type===T.GRASS&&v>.985&&rand(x,y,11)>.22)trees.push({x:x*TILE+16,y:y*TILE+18,variant:Math.floor(rand(x,y,4)*4)});
+    else if(type===T.SAND&&v>.994)cacti.push([x,y]);
+    else if((type===T.SAND||type===T.GRASS)&&v>.989)rocks.push([x,y]);
+  }
+  [[72,54],[73,87],[108,54],[111,86],[68,70],[115,76],[83,48],[96,48],[79,98],[102,99],[25,57],[44,83],[80,7],[99,27],[137,61],[160,82],[134,92],[153,95],[35,108],[51,125],[170,35],[12,35],[17,91]].forEach(([x,y],i)=>trees.push({x:x*TILE+16,y:y*TILE+18,variant:i%4}));
 
   const npcs = [
-    { id:'merchant', name:'Yusuf', role:'Pedagang pasar', x:35*TILE+16, y:17*TILE+9, color:'#b9684e', accent:'#e6bd79', line:'Assalamu’alaikum! Pasar Nuraya selalu ramai. Silakan lihat barang daganganku.' },
-    { id:'gardener', name:'Maryam', role:'Pekebun kurma', x:39*TILE+16, y:25*TILE+8, color:'#668b68', accent:'#e8cf9d', line:'Pohon kurma perlu dirawat dengan sabar. Sedikit demi sedikit, kebun ini akan berbuah.' },
-    { id:'traveler', name:'Rafi', role:'Pengembara', x:14*TILE+16, y:18*TILE+8, color:'#547d91', accent:'#d9bd8e', line:'Aku baru tiba dari oasis di utara. Jalan di sana teduh dan penuh pohon kurma.' },
-    { id:'guard', name:'Hassan', role:'Penjaga kota', x:24*TILE+16, y:31*TILE+8, color:'#9a7548', accent:'#e7c58c', line:'Selamat datang di Nuraya. Jaga kebersihan kota dan hormati sesama pengunjung, ya.' },
-    { id:'scholar', name:'Amina', role:'Penjaga Rumah Ilmu', x:10*TILE+16, y:17*TILE+8, color:'#856b9e', accent:'#ead5a8', line:'Di Rumah Ilmu ada banyak kisah tentang bintang, perdagangan, geografi, dan sejarah.' },
+    {id:'merchant',name:'Yusuf',role:'Pedagang pasar',x:91*TILE,y:75*TILE,color:'#c16c4d',accent:'#e6c27e',palette:'merchant',line:'Assalamu’alaikum! Pasar Nuraya selalu ramai. Ada kurma, roti, dan rempah pilihan hari ini.',home:{x:78,y:70,w:29,h:11},speed:34,dir:'down',moving:false,walk:0,wait:2},
+    {id:'gardener',name:'Maryam',role:'Pekebun kurma',x:145*TILE,y:83*TILE,color:'#658c67',accent:'#d9b987',palette:'gardener',line:'Pohon kurma perlu dirawat dengan sabar. Sedikit demi sedikit, kebun ini akan berbuah.',home:{x:132,y:81,w:26,h:22},speed:29,dir:'left',moving:false,walk:0,wait:1},
+    {id:'traveler',name:'Rafi',role:'Pengembara',x:87*TILE,y:74*TILE,color:'#5683a0',accent:'#d9c69d',palette:'traveler',line:'Aku datang dari pelabuhan barat. Jalan kafilah di sana menghadap matahari terbenam.',home:{x:70,y:64,w:37,h:31},speed:42,dir:'up',moving:false,walk:0,wait:3},
+    {id:'guard',name:'Hassan',role:'Penjaga kota',x:89*TILE,y:91*TILE,color:'#a9854f',accent:'#ead7b1',palette:'guard',line:'Selamat datang di Nuraya. Kota ini luas; ikuti jalan kafilah agar tidak tersesat.',home:{x:82,y:55,w:19,h:47},speed:45,dir:'down',moving:false,walk:0,wait:1},
+    {id:'scholar',name:'Amina',role:'Penjaga Rumah Ilmu',x:78*TILE,y:82*TILE,color:'#8972a7',accent:'#e8d9b7',palette:'scholar',line:'Di Rumah Ilmu ada kisah tentang bintang, perdagangan, geografi, dan sejarah.',home:{x:66,y:73,w:18,h:17},speed:25,dir:'right',moving:false,walk:0,wait:4},
+    {id:'fisher',name:'Bilal',role:'Nelayan pelabuhan',x:34*TILE,y:75*TILE,color:'#9b7752',accent:'#e9d2a0',palette:'fisher',line:'Pagi ini ikan banyak mendekati dermaga. Laut dan sungai memberi rezeki bagi yang tekun.',home:{x:24,y:63,w:22,h:23},speed:31,dir:'down',moving:false,walk:0,wait:2},
+    {id:'child',name:'Zahra',role:'Anak warga Nuraya',x:85*TILE,y:87*TILE,color:'#d37b61',accent:'#e8d4b3',palette:'child',line:'Aku suka berlari di alun-alun! Kamu sudah melihat pohon kurma di sebelah timur?',home:{x:77,y:82,w:29,h:18},speed:48,dir:'left',moving:false,walk:0,wait:1},
+    {id:'northman',name:'Salim',role:'Penjaga Oasis Utara',x:88*TILE,y:17*TILE,color:'#c16c4d',accent:'#e6c27e',palette:'merchant',line:'Air oasis utara sangat jernih. Para pengembara sering berhenti di sana.',home:{x:76,y:8,w:25,h:21},speed:28,dir:'down',moving:false,walk:0,wait:3},
+    {id:'farmer',name:'Hamzah',role:'Petani kurma',x:151*TILE,y:99*TILE,color:'#658c67',accent:'#d9b987',palette:'gardener',line:'Musim panen sebentar lagi. Kebun ini memasok buah untuk pasar kota.',home:{x:132,y:84,w:29,h:22},speed:27,dir:'left',moving:false,walk:0,wait:2},
+  ];
+  const landmarks = [
+    {id:'market',name:'Pasar Rempah Nuraya',x:91*TILE,y:69*TILE,type:'market'},
+    {id:'well',name:'Sumur Oasis',x:78*TILE,y:86*TILE,type:'well'},
+    {id:'board',name:'Papan Pengumuman Kota',x:99*TILE,y:86*TILE,type:'board'},
+    {id:'garden',name:'Kebun Kurma',x:145*TILE,y:84*TILE,type:'garden'},
+    {id:'harbor',name:'Dermaga Nelayan',x:32*TILE,y:73*TILE,type:'harbor'},
+    {id:'ruins',name:'Reruntuhan Batu',x:159*TILE,y:121*TILE,type:'ruins'},
+    {id:'northWell',name:'Kolam Oasis Utara',x:87*TILE,y:15*TILE,type:'well'},
   ];
 
-  const interactables = [
-    ...buildings.map(b=>({ id:b.id, name:b.name, x:b.interactX, y:b.interactY, type:b.id })),
-    { id:'market', name:'Pasar Rempah Nuraya', x:35*TILE+16, y:18*TILE+12, type:'market' },
-    { id:'well', name:'Sumur Oasis', x:15*TILE+16, y:24*TILE+16, type:'well' },
-    { id:'board', name:'Papan Pengumuman', x:28*TILE+16, y:21*TILE+5, type:'board' },
-    { id:'garden', name:'Kebun Kurma', x:40*TILE+16, y:27*TILE+4, type:'garden' },
-    { id:'bridge', name:'Jembatan Timur', x:43*TILE+16, y:28*TILE+16, type:'bridge' },
-  ];
-  npcs.forEach(n=>interactables.push({ id:n.id, name:n.name, x:n.x, y:n.y, type:'npc', npc:n }));
-
-  const player = { x:24*TILE+16, y:18*TILE+16, r:9, speed:132, dir:'down', moving:false, walk:0 };
+  const player = { x:90*TILE, y:73*TILE, r:8, speed:148, dir:'down', moving:false, walk:0, palette:'player' };
   const camera = { x:0, y:0 };
   const keys = Object.create(null);
   const touchDirs = Object.create(null);
@@ -123,6 +121,11 @@
   let currentLocation = 'Kota Nuraya';
   let deliveredQuest = false;
   let dateItems = 0;
+  let scene = 'world';
+  let currentBuilding = null;
+  let returnPosition = null;
+  let actorTime = 0;
+  let worldTick = 0;
 
   const prayerTimes = [
     { name:'Subuh', time:5*60+20 },
@@ -169,7 +172,7 @@
     for (let t=oldTotal+1; t<=newTotal; t++) {
       const minute = t%1440;
       const prayer = prayerTimes.find(p=>p.time===minute);
-      if (prayer) showToast(`Waktu ${prayer.name} telah tiba. Masjid Al-Qamar berada di bagian utara kota.`, 4.5);
+      if (prayer) showToast(`Waktu ${prayer.name} telah tiba. Masjid Al-Qamar berada di pusat Nuraya.`, 4.5);
     }
     gameMinutes = newTotal;
     while (gameMinutes>=1440) { gameMinutes-=1440; day++; showToast(`Hari baru dimulai. Selamat datang di Hari ${day}!`,3.5); }
@@ -189,17 +192,18 @@
   const obstacleRects = [];
   // Building footprints leave a narrow doorway at the front.
   buildings.forEach(b=>{
-    obstacleRects.push({x:b.x*TILE+5,y:b.y*TILE+25,w:b.w*TILE-10,h:b.h*TILE-48});
-    obstacleRects.push({x:b.x*TILE+5,y:(b.y+b.h)*TILE-22,w:b.w*TILE/2-20,h:16});
-    obstacleRects.push({x:b.x*TILE+b.w*TILE/2+15,y:(b.y+b.h)*TILE-22,w:b.w*TILE/2-20,h:16});
+    obstacleRects.push({x:b.x*TILE+5,y:b.y*TILE+30,w:b.w*TILE-10,h:b.h*TILE-39});
+    obstacleRects.push({x:b.x*TILE+5,y:(b.y+b.h)*TILE-14,w:b.w*TILE/2-19,h:16});
+    obstacleRects.push({x:b.x*TILE+b.w*TILE/2+14,y:(b.y+b.h)*TILE-14,w:b.w*TILE/2-19,h:16});
   });
   stalls.forEach(s=>obstacleRects.push({x:s.x*TILE+5,y:s.y*TILE+22,w:s.w*TILE-10,h:s.h*TILE-22}));
   trees.forEach(t=>obstacleRects.push({x:t.x-11,y:t.y+2,w:22,h:18}));
   rocks.forEach(([x,y])=>obstacleRects.push({x:x*TILE+7,y:y*TILE+8,w:18,h:17}));
   cacti.forEach(([x,y])=>obstacleRects.push({x:x*TILE+9,y:y*TILE+5,w:14,h:23}));
-  obstacleRects.push({x:14*TILE+4,y:23*TILE+4,w:24,h:24}); // well
+  obstacleRects.push({x:78*TILE-12,y:86*TILE-12,w:24,h:24}); // central well
 
   function collides(x,y) {
+    if(x<12||y<12||x>WORLD_W-12||y>WORLD_H-12)return true;
     const samples=[[x-player.r,y-player.r],[x+player.r,y-player.r],[x-player.r,y+player.r],[x+player.r,y+player.r],[x,y]];
     if (samples.some(([sx,sy])=>tileAtWorld(sx,sy)===T.WATER)) return true;
     return obstacleRects.some(r=>circleRectCollision(x,y,player.r,r));
@@ -236,6 +240,9 @@
     } else if(type===T.DIRT) {
       ctx.fillStyle='#a9804e';ctx.fillRect(screenX,screenY,TILE,TILE);
       ctx.fillStyle='rgba(70,48,32,.2)';ctx.fillRect(screenX+4,screenY+8,3,2);ctx.fillRect(screenX+21,screenY+21,4,2);
+    } else if(type===T.DECK) {
+      ctx.fillStyle='#896343';ctx.fillRect(screenX,screenY,TILE,TILE);ctx.fillStyle='#c09361';
+      for(let i=0;i<4;i++)ctx.fillRect(screenX+2,screenY+3+i*8,28,3);ctx.fillStyle='#634a35';ctx.fillRect(screenX+4,screenY,2,TILE);ctx.fillRect(screenX+25,screenY,2,TILE);
     } else {
       ctx.fillStyle='#937c59';ctx.fillRect(screenX,screenY,TILE,TILE);
     }
@@ -341,7 +348,7 @@
   }
 
   function drawWell() {
-    const x=15*TILE-camera.x+16, y=24*TILE-camera.y+16;
+    const x=78*TILE-camera.x+16, y=86*TILE-camera.y+16;
     ctx.fillStyle='rgba(40,40,28,.22)';ctx.fillRect(x-16,y+9,33,7);
     ctx.fillStyle='#a99a78';ctx.fillRect(x-14,y-8,28,17);ctx.fillStyle='#d5c49a';ctx.fillRect(x-11,y-12,22,7);
     ctx.fillStyle='#4f8e98';ctx.fillRect(x-8,y-5,16,9);ctx.fillStyle='#d7c69e';ctx.fillRect(x-17,y-14,34,5);
@@ -350,7 +357,7 @@
 
   function drawGarden() {
     for(let row=0;row<3;row++) for(let col=0;col<4;col++) {
-      const x=37+col*2, y=28+row*1.4;
+      const x=136+col*3, y=88+row*4;
       const sx=x*TILE-camera.x, sy=y*TILE-camera.y;
       ctx.fillStyle='#715438';ctx.fillRect(sx+4,sy+14,24,7);
       ctx.fillStyle='#467a4c';ctx.fillRect(sx+11,sy+4,10,13);ctx.fillRect(sx+7,sy+8,18,5);
@@ -360,11 +367,12 @@
   }
 
   function drawDecoration() {
-    trees.forEach(t=>drawPalm(t.x,t.y,t.variant));
-    rocks.forEach(([x,y])=>drawRock(x,y));
-    cacti.forEach(([x,y])=>drawCactus(x,y));
-    // Low bushes and flower specks.
-    for(let y=3;y<34;y++) for(let x=3;x<45;x++) {
+    rocks.forEach(([x,y])=>{if(x*TILE-camera.x>-25&&x*TILE-camera.x<VIEW_W+25&&y*TILE-camera.y>-25&&y*TILE-camera.y<VIEW_H+25)drawRock(x,y);});
+    cacti.forEach(([x,y])=>{if(x*TILE-camera.x>-25&&x*TILE-camera.x<VIEW_W+25&&y*TILE-camera.y>-25&&y*TILE-camera.y<VIEW_H+25)drawCactus(x,y);});
+    // Low bushes and flower specks around the visible region only.
+    const y0=Math.max(2,Math.floor(camera.y/TILE)-1),y1=Math.min(MAP_H-1,Math.ceil((camera.y+VIEW_H)/TILE)+1);
+    const x0=Math.max(2,Math.floor(camera.x/TILE)-1),x1=Math.min(MAP_W-1,Math.ceil((camera.x+VIEW_W)/TILE)+1);
+    for(let y=y0;y<y1;y++) for(let x=x0;x<x1;x++) {
       if(rand(x,y,8)>.986 && map[y][x]===T.GRASS && !(x>18&&x<28&&y>10&&y<22)) {
         const sx=x*TILE-camera.x+12, sy=y*TILE-camera.y+18;
         ctx.fillStyle='#4f8154';ctx.fillRect(sx-4,sy-2,8,5);ctx.fillStyle='#91a96a';ctx.fillRect(sx-2,sy-4,4,3);
@@ -375,64 +383,64 @@
     }
   }
 
-  function drawNPC(n, time) {
-    const sx=Math.round(n.x-camera.x), sy=Math.round(n.y-camera.y);
-    const bob=Math.sin(time/480+n.x)*1.1;
-    ctx.fillStyle='rgba(36,39,26,.2)';ctx.fillRect(sx-8,sy+7,16,5);
-    // robe body
-    ctx.fillStyle=n.color;ctx.fillRect(sx-7,sy-3+bob,14,13);ctx.fillRect(sx-9,sy+1+bob,18,7);
-    ctx.fillStyle=n.accent;ctx.fillRect(sx-2,sy-1+bob,4,12);
-    // head and cap
-    ctx.fillStyle='#9b6547';ctx.fillRect(sx-5,sy-13+bob,10,10);ctx.fillStyle='#392e28';ctx.fillRect(sx-5,sy-15+bob,10,4);
-    ctx.fillStyle='#e6d4ad';ctx.fillRect(sx-7,sy-17+bob,14,4);ctx.fillRect(sx-5,sy-19+bob,10,3);
-    ctx.fillStyle='#2c2b25';ctx.fillRect(sx-3,sy-9+bob,2,2);ctx.fillRect(sx+2,sy-9+bob,2,2);
+  const spritePalettes={
+    player:{robe:'#2f8378',shade:'#205d58',light:'#6db3a0',wrap:'#e6d4ad',wrapShade:'#bda77c',skin:'#b97856',hair:'#49352c',boots:'#624536',gold:'#d9b66d'},
+    merchant:{robe:'#c16c4d',shade:'#844637',light:'#e6a06b',wrap:'#e6c27e',wrapShade:'#b28c52',skin:'#a9684b',hair:'#48352b',boots:'#674638',gold:'#e8d09a'},
+    gardener:{robe:'#658c67',shade:'#3f654e',light:'#9dbb7c',wrap:'#d9b987',wrapShade:'#a78b62',skin:'#b9795b',hair:'#40312c',boots:'#644838',gold:'#dfc77f'},
+    traveler:{robe:'#5683a0',shade:'#365b78',light:'#8fb4c4',wrap:'#d9c69d',wrapShade:'#a99470',skin:'#bd8060',hair:'#49342a',boots:'#654838',gold:'#e2bf7e'},
+    guard:{robe:'#a9854f',shade:'#6c5537',light:'#d2b476',wrap:'#ead7b1',wrapShade:'#baa37a',skin:'#a96b4e',hair:'#41332a',boots:'#624633',gold:'#d9b46c'},
+    scholar:{robe:'#8972a7',shade:'#5d4e78',light:'#b5a0cb',wrap:'#e8d9b7',wrapShade:'#bba77e',skin:'#bd8264',hair:'#44342f',boots:'#654a3b',gold:'#dfc783'},
+    fisher:{robe:'#9b7752',shade:'#6c5039',light:'#c39b6c',wrap:'#e9d2a0',wrapShade:'#b39c70',skin:'#a9684b',hair:'#49362d',boots:'#654838',gold:'#8cb3b0'},
+    child:{robe:'#d37b61',shade:'#954f4c',light:'#f0ad84',wrap:'#e8d4b3',wrapShade:'#bba27d',skin:'#c48765',hair:'#4b342b',boots:'#624638',gold:'#f0cf83'}
+  };
+  const spriteCache=new Map();
+  function makeSprite(paletteName,dir,frame){
+    const key=`${paletteName}:${dir}:${frame}`;if(spriteCache.has(key))return spriteCache.get(key);
+    const p=spritePalettes[paletteName]||spritePalettes.player;
+    const c=document.createElement('canvas');c.width=24;c.height=32;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+    const px=(x,y,w,h,color)=>{g.fillStyle=color;g.fillRect(x,y,w,h);};
+    const step=frame===1?-2:frame===3?2:frame===2?1:0,arm=frame===1?2:frame===3?-2:0;
+    // Boots, trousers and robe silhouette.
+    px(7,25,4,4,p.shade);px(13,25,4,4,p.shade);if(frame===1){px(6,27,5,3,p.shade);px(14,24,4,4,p.shade);}if(frame===3){px(7,24,4,4,p.shade);px(14,27,5,3,p.shade);}
+    px(6+step,28,5,3,p.boots);px(14-step,28,5,3,p.boots);px(7+step,28,2,1,p.gold);px(15-step,28,2,1,p.gold);
+    px(6,15,12,11,p.shade);px(5,18,14,8,p.robe);px(7,14,10,11,p.robe);px(8,15,2,9,p.light);px(14,16,2,8,p.shade);
+    px(10,16,2,10,p.gold);px(10,17,1,8,'#f0dcae');px(5,24,14,2,p.shade);
+    px(3,17+Math.max(0,arm),4,7,p.shade);px(17,17+Math.max(0,-arm),4,7,p.shade);px(4,18+Math.max(0,arm),2,5,p.robe);px(18,18+Math.max(0,-arm),2,5,p.robe);
+    px(4,23+Math.max(0,arm),3,2,p.skin);px(17,23+Math.max(0,-arm),3,2,p.skin);
+    // Head is larger than the body for a friendly, original chibi RPG look.
+    px(9,12,6,4,p.skin);px(6,4,12,11,p.skin);px(7,3,10,2,p.skin);px(6,7,2,5,p.skin);px(16,7,2,5,p.skin);
+    px(5,3,14,7,p.wrapShade);px(7,1,10,5,p.wrap);px(8,0,8,3,p.wrap);px(5,5,3,5,p.wrap);px(16,5,3,5,p.wrapShade);px(8,3,8,2,p.wrapShade);px(10,0,4,2,p.gold);
+    if(dir==='down'){px(8,9,2,2,p.hair);px(14,9,2,2,p.hair);px(9,12,6,1,'#8e5040');px(10,13,4,1,'#f0c09a');}
+    else if(dir==='left'){px(7,9,2,2,p.hair);px(6,11,2,2,p.skin);px(8,13,3,1,'#8e5040');px(5,7,2,5,p.wrapShade);}
+    else if(dir==='right'){px(15,9,2,2,p.hair);px(16,11,2,2,p.skin);px(13,13,3,1,'#8e5040');px(17,7,2,5,p.wrapShade);}
+    else{px(7,8,10,5,p.wrapShade);px(8,10,8,3,p.wrap);px(7,13,10,2,p.shade);}
+    if(paletteName==='player'){px(dir==='left'?17:18,18,4,6,'#9a623e');px(19,19,2,2,p.gold);}
+    spriteCache.set(key,c);return c;
   }
-
-  function drawPlayer(time) {
-    const sx=Math.round(player.x-camera.x), sy=Math.round(player.y-camera.y);
-    const bob=player.moving?Math.abs(Math.sin(player.walk))*2:0;
-    const step=player.moving?Math.sin(player.walk*1.1)*2:0;
-    ctx.fillStyle='rgba(31,38,25,.27)';ctx.fillRect(sx-10,sy+8,20,6);
-    // feet
-    ctx.fillStyle='#604632';ctx.fillRect(sx-7+step,sy+7-bob,5,4);ctx.fillRect(sx+2-step,sy+7-bob,5,4);
-    // robe
-    ctx.fillStyle='#397c71';ctx.fillRect(sx-8,sy-3-bob,16,14);ctx.fillRect(sx-10,sy+2-bob,20,7);
-    ctx.fillStyle='#d9b66f';ctx.fillRect(sx-2,sy-2-bob,4,13);
-    // arms
-    ctx.fillStyle='#b77954';ctx.fillRect(sx-11,sy+1-bob,3,7);ctx.fillRect(sx+8,sy+1-bob,3,7);
-    // face & head wrap; face shifts subtly with facing
-    ctx.fillStyle='#a96f50';ctx.fillRect(sx-6,sy-15-bob,12,11);
-    ctx.fillStyle='#ead9b5';ctx.fillRect(sx-8,sy-18-bob,16,6);ctx.fillRect(sx-6,sy-21-bob,12,4);
-    ctx.fillStyle='#44352b';ctx.fillRect(sx-6,sy-16-bob,12,3);
-    ctx.fillStyle='#302e27';
-    if(player.dir==='down'){ctx.fillRect(sx-3,sy-9-bob,2,2);ctx.fillRect(sx+2,sy-9-bob,2,2);}
-    else if(player.dir==='left'){ctx.fillRect(sx-5,sy-10-bob,2,2);}
-    else if(player.dir==='right'){ctx.fillRect(sx+3,sy-10-bob,2,2);}
-    // little shoulder satchel
-    ctx.fillStyle='#a66d43';ctx.fillRect(sx+6,sy-1-bob,5,7);ctx.fillStyle='#dfb66c';ctx.fillRect(sx+7,sy,3,2);
+  function drawActor(actor,isPlayer=false){
+    const sx=Math.round(actor.x-camera.x),sy=Math.round(actor.y-camera.y),frame=actor.moving?Math.floor(actor.walk/2.4)%4:0,bob=actor.moving?Math.round(Math.abs(Math.sin(actor.walk))*1.5):0;
+    ctx.fillStyle='rgba(38,39,29,.26)';ctx.fillRect(sx-12,sy-3,24,8);
+    ctx.drawImage(makeSprite(actor.palette||'player',actor.dir,frame),sx-24,sy-61-bob,48,64);
+    if(!isPlayer&&Math.hypot(player.x-actor.x,player.y-actor.y)<78){ctx.fillStyle='rgba(255,245,215,.96)';ctx.font='bold 11px Manrope,sans-serif';ctx.textAlign='center';ctx.fillText(actor.name,sx,sy-67-bob);}
   }
+  function drawNPC(n,time){drawActor(n,false);}
+  function drawPlayer(time){drawActor(player,true);}
 
   function drawWorld(time) {
+    if(scene==='interior'){drawInterior(time);return;}
     ctx.clearRect(0,0,VIEW_W,VIEW_H);
     const startX=clamp(Math.floor(camera.x/TILE),0,MAP_W-1), startY=clamp(Math.floor(camera.y/TILE),0,MAP_H-1);
     const endX=clamp(Math.ceil((camera.x+VIEW_W)/TILE)+1,0,MAP_W), endY=clamp(Math.ceil((camera.y+VIEW_H)/TILE)+1,0,MAP_H);
     for(let y=startY;y<endY;y++) for(let x=startX;x<endX;x++) drawGroundTile(x,y,Math.floor(x*TILE-camera.x),Math.floor(y*TILE-camera.y));
     drawDecoration();
-    buildings.forEach(b=>{
-      if(b.kind==='mosque') drawMosque(b);
-      else if(b.kind==='house') drawHouse(b);
-      else if(b.kind==='library') drawLibrary(b);
-      else drawInn(b);
-    });
-    stalls.forEach(drawStall);
-    drawWell();
-    drawGarden();
-    // Board sign near the plaza.
-    let bx=28*TILE-camera.x+16, by=21*TILE-camera.y+8;
-    ctx.fillStyle='#684a33';ctx.fillRect(bx-3,by-3,6,23);ctx.fillStyle='#bd9257';ctx.fillRect(bx-14,by-13,28,14);ctx.fillStyle='#73563a';ctx.fillRect(bx-9,by-8,18,2);ctx.fillRect(bx-9,by-3,13,2);
-    // draw NPCs and player in their world-depth order
-    const actors=[...npcs.map(n=>({y:n.y,draw:()=>drawNPC(n,time)})),{y:player.y,draw:()=>drawPlayer(time)}].sort((a,b)=>a.y-b.y);
-    actors.forEach(a=>a.draw());
+    const layers=[];
+    trees.forEach(t=>{if(t.x-camera.x>-45&&t.x-camera.x<VIEW_W+45&&t.y-camera.y>-55&&t.y-camera.y<VIEW_H+45)layers.push({y:t.y,draw:()=>drawPalm(t.x,t.y,t.variant)});});
+    buildings.forEach(b=>layers.push({y:(b.y+b.h)*TILE-8,draw:()=>{if(b.kind==='mosque')drawMosque(b);else if(b.kind==='house')drawHouse(b);else if(b.kind==='library')drawLibrary(b);else drawInn(b);}}));
+    stalls.forEach(st=>layers.push({y:(st.y+st.h)*TILE,draw:()=>drawStall(st,0)}));
+    layers.push({y:86*TILE,draw:drawWell},{y:103*TILE,draw:drawGarden});
+    landmarks.forEach(l=>{if(l.type==='board')layers.push({y:l.y,draw:()=>{const bx=l.x-camera.x,by=l.y-camera.y;ctx.fillStyle='#684a33';ctx.fillRect(bx-3,by-3,6,23);ctx.fillStyle='#bd9257';ctx.fillRect(bx-14,by-13,28,14);ctx.fillStyle='#73563a';ctx.fillRect(bx-9,by-8,18,2);ctx.fillRect(bx-9,by-3,13,2);}});});
+    npcs.forEach(n=>layers.push({y:n.y,draw:()=>drawNPC(n,time)}));layers.push({y:player.y,draw:()=>drawPlayer(time)});
+    layers.sort((a,b)=>a.y-b.y).forEach(layer=>layer.draw());
     // Time-of-day tint.
     const minutes=gameMinutes%1440, hour=minutes/60;
     let alpha=0;
@@ -446,23 +454,23 @@
   function drawMinimap() {
     const sx=mini.width/MAP_W, sy=mini.height/MAP_H;
     mctx.clearRect(0,0,mini.width,mini.height);
-    const colors={ [T.SAND]:'#c9a66b',[T.GRASS]:'#6e965e',[T.ROAD]:'#b88f5a',[T.STONE]:'#c6b58a',[T.WATER]:'#4d91a0',[T.DIRT]:'#997246',[T.TILE]:'#7b6040' };
+    const colors={ [T.SAND]:'#c9a66b',[T.GRASS]:'#6e965e',[T.ROAD]:'#b88f5a',[T.STONE]:'#c6b58a',[T.WATER]:'#4d91a0',[T.DIRT]:'#997246',[T.TILE]:'#7b6040',[T.DECK]:'#825d40' };
     for(let y=0;y<MAP_H;y++) for(let x=0;x<MAP_W;x++){mctx.fillStyle=colors[map[y][x]];mctx.fillRect(x*sx,y*sy,Math.ceil(sx),Math.ceil(sy));}
-    // Main building landmarks.
-    mctx.fillStyle='#d9d0ad';mctx.fillRect(19*sx,4*sy,8*sx,7*sy);
-    mctx.fillStyle='#b87851';mctx.fillRect(4*sx,23*sy,7*sx,5*sy);mctx.fillRect(38*sx,5*sy,7*sx,5*sy);
-    mctx.fillStyle='#e6c77f';mctx.fillRect(30*sx,13*sy,11*sx,3*sy);
+    // Building markers.
+    buildings.forEach(b=>{mctx.fillStyle=b.kind==='mosque'?'#f5edcf':'#ac7151';mctx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);});
     mctx.fillStyle='#fff2c8';mctx.fillRect((player.x/WORLD_W)*mini.width-2,(player.y/WORLD_H)*mini.height-2,4,4);
     mctx.strokeStyle='rgba(255,255,255,.7)';mctx.lineWidth=1;mctx.strokeRect(0,0,mini.width,mini.height);
   }
 
   function getNearestTarget() {
-    let best=null, bestD=Infinity;
-    for(const t of interactables){
-      const d=Math.hypot(player.x-t.x,player.y-t.y);
-      const max=t.type==='npc'?45:52;
-      if(d<max && d<bestD){best=t;bestD=d;}
+    if(scene==='interior'){
+      const d=Math.hypot(player.x-VIEW_W/2,player.y-(VIEW_H-100));
+      return d<66?{type:'exit',name:'Pintu keluar'}:null;
     }
+    let best=null,bestD=Infinity;
+    for(const b of buildings){const d=Math.hypot(player.x-b.interactX,player.y-b.interactY);if(d<63&&d<bestD){best={type:'door',name:b.name,building:b};bestD=d;}}
+    for(const n of npcs){const d=Math.hypot(player.x-n.x,player.y-n.y);if(d<49&&d<bestD){best={type:'npc',name:n.name,npc:n};bestD=d;}}
+    for(const t of landmarks){const d=Math.hypot(player.x-t.x,player.y-t.y);if(d<52&&d<bestD){best=t;bestD=d;}}
     return best;
   }
 
@@ -503,11 +511,47 @@
     openModal('Jurnal perjalanan',`<p><b>Tujuan kecil: Bantuan untuk kebun kurma</b></p><p>Yusuf ingin mengenalkan kurma dari kebun Maryam kepada para pengunjung pasar. Belilah satu paket kurma dari kios Yusuf, lalu temui Maryam di kebun bagian tenggara kota.</p><p><b>Status:</b> ${quest}</p><p style="color:#a9c1aa;font-size:11px">Petunjuk: dekati seseorang atau tempat, lalu tekan E (atau tombol INTERAKSI).</p>`,[{label:'Mengerti',secondary:true,run:closeModal}],'JURNAL');
   }
 
+  function enterBuilding(b){
+    returnPosition={x:player.x,y:player.y,location:currentLocation};currentBuilding=b;scene='interior';
+    player.x=VIEW_W/2;player.y=VIEW_H-180;player.dir='down';player.moving=false;currentLocation=b.name;updateHud();
+    showToast(`Memasuki ${b.name}. Tekan E di dekat pintu untuk keluar.`);
+  }
+  function exitBuilding(){
+    scene='world';player.x=returnPosition?.x??player.x;player.y=(returnPosition?.y??player.y)+30;
+    player.dir='up';currentBuilding=null;currentLocation=returnPosition?.location||'Kota Nuraya';returnPosition=null;updateHud();
+    showToast('Kamu kembali ke jalanan Nuraya.');
+  }
+  function drawInterior(time){
+    ctx.clearRect(0,0,VIEW_W,VIEW_H);ctx.fillStyle='#604b36';ctx.fillRect(0,0,VIEW_W,VIEW_H);
+    const kind=currentBuilding?.kind||'house';
+    for(let y=0;y<VIEW_H;y+=32)for(let x=0;x<VIEW_W;x+=32){ctx.fillStyle=((x/32+y/32)%2===0)?'#cbb991':'#c2ad83';ctx.fillRect(x,y,32,32);ctx.fillStyle='rgba(92,63,39,.13)';ctx.fillRect(x+1,y+1,30,1);}
+    ctx.fillStyle='#eadbbd';ctx.fillRect(0,0,VIEW_W,38);ctx.fillRect(0,0,22,VIEW_H);ctx.fillRect(VIEW_W-22,0,22,VIEW_H);
+    ctx.fillStyle='#9c744b';ctx.fillRect(0,35,VIEW_W,7);ctx.fillRect(18,40,6,VIEW_H-40);ctx.fillRect(VIEW_W-25,40,6,VIEW_H-40);
+    if(kind==='mosque'){
+      ctx.fillStyle='#477f72';ctx.fillRect(250,100,460,340);ctx.fillStyle='#d8c493';ctx.fillRect(264,114,432,312);
+      for(let y=140;y<380;y+=58)for(let x=300;x<670;x+=78){ctx.fillStyle='#8d5347';ctx.fillRect(x,y,49,39);ctx.fillStyle='#d7b778';ctx.fillRect(x+4,y+4,41,31);ctx.fillStyle='#46776e';ctx.fillRect(x+9,y+9,31,21);ctx.fillStyle='#e6d2a5';ctx.fillRect(x+21,y+12,7,13);}
+    }else if(kind==='library'){
+      for(let x=70;x<900;x+=190){ctx.fillStyle='#624735';ctx.fillRect(x,85,128,20);ctx.fillRect(x,105,9,270);ctx.fillRect(x+119,105,9,270);for(let y=130;y<360;y+=57){ctx.fillStyle='#a77a4f';ctx.fillRect(x+8,y,112,8);for(let i=0;i<8;i++){ctx.fillStyle=['#a85c4b','#547f75','#c39c5e','#7d6995'][i%4];ctx.fillRect(x+13+i*13,y-21,9,21);}}}
+    }else{
+      ctx.fillStyle='#79563c';ctx.fillRect(90,90,190,120);ctx.fillRect(680,90,190,120);ctx.fillStyle='#d8c69f';ctx.fillRect(104,104,162,92);ctx.fillRect(694,104,162,92);
+      ctx.fillStyle='#6a806c';ctx.fillRect(350,100,260,75);ctx.fillStyle='#dfcda8';ctx.fillRect(364,112,232,50);ctx.fillStyle='#8c6748';ctx.fillRect(350,385,260,65);
+    }
+    // Front doorway and threshold.
+    ctx.fillStyle='#62452f';ctx.fillRect(VIEW_W/2-42,VIEW_H-75,84,75);ctx.fillStyle='#3f332b';ctx.fillRect(VIEW_W/2-32,VIEW_H-70,64,70);ctx.fillStyle='#d7b66f';ctx.fillRect(VIEW_W/2-49,VIEW_H-8,98,8);
+    if(Math.hypot(player.x-VIEW_W/2,player.y-(VIEW_H-100))<66){ctx.fillStyle='#fff0c4';ctx.font='bold 13px Manrope,sans-serif';ctx.textAlign='center';ctx.fillText('E  KELUAR',VIEW_W/2,VIEW_H-91);}
+    drawPlayer(time);
+    ctx.fillStyle='rgba(24,39,31,.8)';ctx.fillRect(15,14,280,31);ctx.fillStyle='#f4e4c2';ctx.font='bold 12px Manrope,sans-serif';ctx.textAlign='left';ctx.fillText(currentBuilding.name,27,35);
+  }
+
   function interact(target) {
     if(!target)return;
+    if(target.type==='door'){enterBuilding(target.building);return;}
+    if(target.type==='exit'){exitBuilding();return;}
     switch(target.type){
       case 'npc': {
         const n=target.npc;
+        n.dir=Math.abs(player.x-n.x)>Math.abs(player.y-n.y)?(player.x<n.x?'left':'right'):(player.y<n.y?'up':'down');
+        n.moving=false;n.wait=Math.max(n.wait,2.2);
         let extra='';
         if(n.id==='merchant') extra='<p>“Kalau butuh bekal perjalanan, lihat barang daganganku di kios sebelah.”</p>';
         if(n.id==='gardener') extra='<p>“Aku sedang merawat kebun. Kurma yang baik tumbuh dari perawatan yang tekun.”</p>';
@@ -550,13 +594,13 @@
   }
 
   function saveGame() {
-    const data={x:player.x,y:player.y,coins,inventory,gameMinutes,day,deliveredQuest};
-    try{localStorage.setItem('jejakNurSaveV1',JSON.stringify(data));showToast('Progres tersimpan di browser ini.');}
+    const data={x:scene==='world'?player.x:(returnPosition?.x??player.x),y:scene==='world'?player.y:(returnPosition?.y??player.y),coins,inventory,gameMinutes,day,deliveredQuest};
+    try{localStorage.setItem('jejakNurSaveV2',JSON.stringify(data));showToast('Progres tersimpan di browser ini.');}
     catch(e){showToast('Penyimpanan tidak tersedia di browser ini.');}
   }
   function loadGame() {
     try {
-      const raw=localStorage.getItem('jejakNurSaveV1');if(!raw)return;
+      const raw=localStorage.getItem('jejakNurSaveV2')||localStorage.getItem('jejakNurSaveV1');if(!raw)return;
       const d=JSON.parse(raw);
       if(Number.isFinite(d.x)&&Number.isFinite(d.y)){player.x=clamp(d.x, TILE, WORLD_W-TILE);player.y=clamp(d.y,TILE,WORLD_H-TILE);}
       if(Number.isFinite(d.coins))coins=d.coins;
@@ -569,15 +613,15 @@
   }
 
   function updateLocation() {
-    const x=player.x/TILE,y=player.y/TILE;
-    let loc='Kota Nuraya';
-    if(x>18&&x<29&&y<13)loc='Kompleks Masjid Al-Qamar';
-    else if(x>29&&x<43&&y>11&&y<20)loc='Pasar Rempah Nuraya';
-    else if(x>35&&y>25)loc='Kebun Kurma';
-    else if(x<13&&y<12)loc='Oasis Utara';
-    else if(x<12&&y>21)loc='Permukiman Lama';
-    else if(x>37&&y<12)loc='Penginapan Safa';
-    else if(x<11&&y>12&&y<19)loc='Rumah Ilmu';
+    if(scene==='interior'){currentLocation=currentBuilding?.name||'Dalam bangunan';ui.location.textContent=currentLocation;return;}
+    const x=player.x/TILE,y=player.y/TILE;let loc='Hamparan Gurun';
+    if(x>68&&x<114&&y>43&&y<104)loc='Kota Nuraya';
+    else if(x>67&&x<108&&y<33)loc='Oasis Utara';
+    else if(x<54&&y>53&&y<96)loc='Pelabuhan Barat';
+    else if(x>126&&y>52&&y<108)loc='Kebun Kurma Timur';
+    else if(x>145&&y>108)loc='Reruntuhan Selatan';
+    else if(x<62&&y>105)loc='Lembah Selatan';
+    else if(x>130&&y<42)loc='Taman Oasis Timur';
     if(loc!==currentLocation){currentLocation=loc;ui.location.textContent=loc;}
   }
 
@@ -594,29 +638,53 @@
     return {dx,dy};
   }
 
+  function chooseNpcDestination(n){
+    const h=n.home;
+    for(let i=0;i<12;i++){
+      const x=(h.x+2+rand(Math.floor(n.x/TILE)+i,Math.floor(n.y/TILE),n.id.length)*Math.max(1,h.w-4))*TILE+16;
+      const y=(h.y+2+rand(Math.floor(n.y/TILE),Math.floor(n.x/TILE)+i,n.id.length+8)*Math.max(1,h.h-4))*TILE+16;
+      if(!collides(x,y)){n.tx=x;n.ty=y;n.wait=.5+rand(x,y,3)*1.8;return;}
+    }
+    n.tx=n.x;n.ty=n.y;n.wait=1.4;
+  }
+  function updateNPCs(dt){
+    if(scene!=='world'||modalOpen)return;actorTime+=dt;
+    for(const n of npcs){
+      if(n.wait>0){n.wait-=dt;n.moving=false;continue;}
+      if(!Number.isFinite(n.tx)||!Number.isFinite(n.ty)||Math.hypot(n.tx-n.x,n.ty-n.y)<8){chooseNpcDestination(n);continue;}
+      const dx=n.tx-n.x,dy=n.ty-n.y,len=Math.hypot(dx,dy),vx=dx/Math.max(1,len)*n.speed*dt,vy=dy/Math.max(1,len)*n.speed*dt;
+      n.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
+      const oldX=n.x,oldY=n.y;
+      if(!collides(n.x+vx,n.y))n.x+=vx;if(!collides(n.x,n.y+vy))n.y+=vy;
+      n.moving=Math.hypot(n.x-oldX,n.y-oldY)>.1;if(n.moving)n.walk+=dt*9;else n.wait=.6+rand(n.x,n.y,6)*1.5;
+    }
+  }
+
   function update(dt) {
     if(!modalOpen){
-      const {dx,dy}=setDirectionFromKeys();
-      player.moving=!!(dx||dy);
-      if(player.moving){movePlayer(dx*player.speed*dt,dy*player.speed*dt);player.walk+=dt*12;}
-      changeClock(dt*2.2);
-    } else player.moving=false;
-    camera.x=clamp(player.x-VIEW_W/2,0,WORLD_W-VIEW_W);
-    camera.y=clamp(player.y-VIEW_H/2,0,WORLD_H-VIEW_H);
-    activeTarget=modalOpen?null:getNearestTarget();
-    ui.hint.classList.toggle('visible',!!activeTarget&&!modalOpen);
+      const {dx,dy}=setDirectionFromKeys();player.moving=!!(dx||dy);
+      if(player.moving){
+        if(scene==='world')movePlayer(dx*player.speed*dt,dy*player.speed*dt);
+        else{player.x=clamp(player.x+dx*player.speed*dt,40,VIEW_W-40);player.y=clamp(player.y+dy*player.speed*dt,65,VIEW_H-35);}
+        player.walk+=dt*11;
+      }
+      updateNPCs(dt);changeClock(dt*2.1);
+    }else player.moving=false;
+    if(scene==='world'){camera.x=clamp(player.x-VIEW_W/2,0,WORLD_W-VIEW_W);camera.y=clamp(player.y-VIEW_H/2,0,WORLD_H-VIEW_H);}else{camera.x=0;camera.y=0;}
+    activeTarget=modalOpen?null:getNearestTarget();ui.hint.classList.toggle('visible',!!activeTarget&&!modalOpen);
+    if(activeTarget)ui.hint.innerHTML=`Tekan <kbd>E</kbd> untuk ${activeTarget.type==='door'?'masuk':activeTarget.type==='exit'?'keluar':activeTarget.type==='npc'?'berbicara':'interaksi'}`;
     updateLocation();
     if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)ui.toast.classList.remove('show');}
   }
 
   function frame(timestamp) {
     const dt=Math.min(.04,(timestamp-lastFrame)/1000||0);lastFrame=timestamp;
-    update(dt);drawWorld(timestamp);drawMinimap();requestAnimationFrame(frame);
+    update(dt);drawWorld(timestamp);if(worldTick>.15){drawMinimap();worldTick=0;}worldTick+=dt;requestAnimationFrame(frame);
   }
 
   function doInteract(){if(modalOpen)return;if(activeTarget)interact(activeTarget);else showToast('Belum ada orang atau tempat di dekatmu.');}
   function showHelp(){
-    openModal('Cara bermain','<p><b>Bergerak:</b> gunakan tombol WASD atau tombol panah.</p><p><b>Interaksi:</b> dekati penduduk atau tempat yang ditandai, lalu tekan E. Di ponsel, gunakan tombol arah dan tombol INTERAKSI.</p><p><b>Jelajah:</b> kamera mengikuti karakter. Peta mini di kanan atas menunjukkan posisi kamu di kota.</p><p><b>Waktu:</b> waktu berjalan lebih cepat dari waktu nyata. Pengingat salat menggunakan jadwal simulasi di dalam game.</p><p><b>Simpan:</b> tekan ikon kotak di kanan atas untuk menyimpan progres pada browser ini.</p>',[{label:'Mulai menjelajah',run:closeModal}],'PANDUAN');
+    openModal('Cara bermain','<p><b>Bergerak:</b> gunakan tombol WASD atau tombol panah.</p><p><b>Interaksi:</b> dekati penduduk atau tempat yang ditandai, lalu tekan E. Tekan E di dekat pintu untuk masuk atau keluar. Di ponsel, gunakan tombol arah dan tombol INTERAKSI.</p><p><b>Jelajah:</b> dunia memiliki ukuran 180 × 140 tile, berisi beberapa oasis, desa, kebun kurma, pelabuhan, dan reruntuhan. Peta mini menunjukkan seluruh wilayah.</p><p><b>Bangunan:</b> dekati pintu depan lalu tekan E untuk masuk. Di dalam, berjalan ke pintu bawah dan tekan E untuk keluar.</p><p><b>Penduduk:</b> warga berjalan di sekitar wilayah tempat tinggalnya. Dekati mereka untuk berbicara; mereka akan berhenti dan menghadapmu.</p><p><b>Waktu:</b> waktu berjalan lebih cepat dari waktu nyata. Pengingat salat menggunakan jadwal simulasi di dalam game.</p><p><b>Simpan:</b> tekan ikon kotak di kanan atas untuk menyimpan progres pada browser ini.</p>',[{label:'Mulai menjelajah',run:closeModal}],'PANDUAN');
   }
 
   window.addEventListener('keydown',e=>{
