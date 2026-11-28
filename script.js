@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  // JEJAK NUR — playable browser prototype, version 0.5
+  // JEJAK NUR — playable browser prototype, version 0.6
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const mini = document.getElementById('minimap');
@@ -257,13 +257,15 @@
     return false;
   }
   function movePlayer(dx,dy) {
-    // Short sub-steps stop fast movement from tunnelling through walls.
-    const distance=Math.hypot(dx,dy), steps=Math.max(1,Math.ceil(distance/5));
+    // Sub-steps preserve collision accuracy even when the browser briefly drops a frame.
+    const startX=player.x,startY=player.y;
+    const distance=Math.hypot(dx,dy), steps=Math.max(1,Math.ceil(distance/4));
     const sx=dx/steps, sy=dy/steps;
     for(let i=0;i<steps;i++){
       if(!collides(player.x+sx,player.y,player.r,player))player.x+=sx;
       if(!collides(player.x,player.y+sy,player.r,player))player.y+=sy;
     }
+    return Math.hypot(player.x-startX,player.y-startY)>.01;
   }
 
   function drawGroundTile(x,y,screenX,screenY) {
@@ -573,7 +575,10 @@
     guard:'assets/chibi-ochre.png',
     fisher:'assets/chibi-plum.png',
     farmer:'assets/chibi-ochre.png',
-    northman:'assets/chibi-terracotta.png'
+    northman:'assets/chibi-terracotta.png',
+    gardener:'assets/chibi-female-sage.png',
+    scholar:'assets/chibi-female-lavender.png',
+    child:'assets/chibi-female-rose.png'
   };
   const spriteAtlases={};
   if(typeof Image!=='undefined'){
@@ -679,24 +684,30 @@
   }
 
   function drawActor(actor,isPlayer=false){
-    const sx=Math.round(actor.x-camera.x),sy=Math.round(actor.y-camera.y);
-    const frame=actor.moving?Math.floor(actor.walk*7.5)%4:0;
+    // Keep fractional screen positions so the world and characters glide instead of stepping pixel-by-pixel.
+    const sx=actor.x-camera.x,sy=actor.y-camera.y;
+    // walk is measured in seconds; 8 frames per second gives a readable, even gait.
+    const frame=actor.moving?Math.floor(actor.walk*8)%4:0;
     const directionRow={down:0,left:1,right:2,up:3}[actor.dir||'down']??0;
-    const atlas=spriteAtlases[actor.palette||'player']||spriteAtlases.player;
-    ctx.fillStyle='rgba(48,39,28,.20)';ctx.beginPath();ctx.ellipse(sx,sy-1,13,5,0,0,Math.PI*2);ctx.fill();
+    const atlas=spriteAtlases[actor.palette||'player']||null;
+    ctx.fillStyle='rgba(48,39,28,.20)';ctx.beginPath();ctx.ellipse(sx,sy-1,9,3.5,0,0,Math.PI*2);ctx.fill();
     if(atlas&&atlas.complete&&(atlas.naturalWidth||atlas.width)>0){
-      // Each source cell is 192×256: rows are directions, columns are walk frames.
-      ctx.imageSmoothingEnabled=true;
-      ctx.drawImage(atlas,frame*192,directionRow*256,192,256,sx-31,sy-82,62,82);
+      // Male and female atlases share the same 4×4 layout: four directions × four gait frames.
+      ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+      // Smaller chibi scale: one character is about 1.5 tiles high on the screen.
+      ctx.drawImage(atlas,frame*192,directionRow*256,192,256,sx-19,sy-51,38,50);
+      ctx.imageSmoothingEnabled=false;
     }else{
+      // Never substitute the male player sprite for another character. Female NPCs use the
+      // dedicated hijab palettes below until their image atlas finishes loading.
       const sprite=makeSprite(actor.palette||'player',actor.dir||'down',frame);
-      ctx.imageSmoothingEnabled=false;ctx.drawImage(sprite,sx-30,sy-73,60,73);
+      ctx.imageSmoothingEnabled=true;ctx.drawImage(sprite,sx-17,sy-43,34,42);ctx.imageSmoothingEnabled=false;
     }
     if(!isPlayer&&Math.hypot(player.x-actor.x,player.y-actor.y)<92){
-      ctx.font='bold 11px Manrope,sans-serif';ctx.textAlign='center';
-      const label=actor.name,w=ctx.measureText(label).width+14;
-      ctx.fillStyle='rgba(35,48,38,.88)';roundRect(ctx,sx-w/2,sy-82,w,17,5);ctx.strokeStyle='rgba(240,211,151,.7)';ctx.strokeRect(sx-w/2,sy-82,w,17);
-      ctx.fillStyle='#fff3d8';ctx.fillText(label,sx,sy-70);
+      ctx.font='bold 10px Manrope,sans-serif';ctx.textAlign='center';
+      const label=actor.name,w=ctx.measureText(label).width+12;
+      ctx.fillStyle='rgba(35,48,38,.88)';roundRect(ctx,sx-w/2,sy-57,w,15,5);ctx.strokeStyle='rgba(240,211,151,.7)';ctx.strokeRect(sx-w/2,sy-57,w,15);
+      ctx.fillStyle='#fff3d8';ctx.fillText(label,sx,sy-46);
     }
   }
   function roundRect(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r);c.fill();}
@@ -971,7 +982,7 @@
       n.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
       const oldX=n.x,oldY=n.y;
       if(!collides(n.x+vx,n.y,6,n))n.x+=vx;if(!collides(n.x,n.y+vy,6,n))n.y+=vy;
-      n.moving=Math.hypot(n.x-oldX,n.y-oldY)>.1;if(n.moving)n.walk+=dt*9;else n.wait=.6+rand(n.x,n.y,6)*1.5;
+      n.moving=Math.hypot(n.x-oldX,n.y-oldY)>.1;if(n.moving)n.walk+=dt;else n.wait=.6+rand(n.x,n.y,6)*1.5;
     }
   }
 
@@ -979,9 +990,11 @@
     if(!modalOpen){
       const {dx,dy}=setDirectionFromKeys();player.moving=!!(dx||dy);
       if(player.moving){
-        if(scene==='world')movePlayer(dx*player.speed*dt,dy*player.speed*dt);
-        else{player.x=clamp(player.x+dx*player.speed*dt,40,VIEW_W-40);player.y=clamp(player.y+dy*player.speed*dt,65,VIEW_H-35);}
-        player.walk+=dt*11;
+        let moved=false;
+        if(scene==='world')moved=movePlayer(dx*player.speed*dt,dy*player.speed*dt);
+        else{const oldX=player.x,oldY=player.y;player.x=clamp(player.x+dx*player.speed*dt,40,VIEW_W-40);player.y=clamp(player.y+dy*player.speed*dt,65,VIEW_H-35);moved=Math.hypot(player.x-oldX,player.y-oldY)>.01;}
+        player.moving=moved;
+        if(moved)player.walk+=dt;
       }
       updateNPCs(dt);changeClock(dt*2.1);
     }else player.moving=false;
@@ -993,7 +1006,7 @@
   }
 
   function frame(timestamp) {
-    const dt=Math.min(.04,(timestamp-lastFrame)/1000||0);lastFrame=timestamp;
+    const dt=Math.min(.05,Math.max(0,(timestamp-lastFrame)/1000||0));lastFrame=timestamp;
     update(dt);drawWorld(timestamp);if(worldTick>.15){drawMinimap();worldTick=0;}worldTick+=dt;requestAnimationFrame(frame);
   }
 

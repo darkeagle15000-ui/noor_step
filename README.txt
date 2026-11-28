@@ -1,32 +1,43 @@
-JEJAK NUR — PROTOTIPE v0.5
+JEJAK NUR — PROTOTIPE v0.6
 A Life of Faith & Adventure
 
-APA YANG DIPERBAIKI DI v0.5
-- Karakter utama memakai sprite chibi baru: kepala besar membulat, wajah ramah, badan mungil, dan pakaian sederhana.
-- NPC laki-laki memakai variasi warna sprite dan animasi 4 arah; NPC perempuan memakai variasi berkerudung.
-- Sprite memiliki 4 arah (depan, kiri, kanan, belakang) dan 4 frame untuk animasi berjalan.
-- Pepohonan palem dan pohon berbunga, pot bunga, lampu jalan, motif masjid, detail atap rumah, dan kios pasar diperindah.
-- Collision diperbaiki: dinding bangunan menghalangi pemain, tetapi bukaan pintu tetap bisa dilewati.
-- Jembatan kayu pada rute kebun kurma bisa diseberangi.
-- Misi utama sekarang memiliki tahapan, penanda di dunia/minimap, interaksi toko, barang misi, penyerahan barang, dan hadiah.
-- Misi yang diuji: bicara dengan Yusuf → beli 1 paket kurma → temui Maryam → serahkan kurma → terima 35 koin.
-- Bangunan dapat dimasuki dan pemain dapat keluar kembali melalui pintu.
-- Dunia berukuran 180 × 140 tile (5.760 × 4.480 piksel dunia).
+PERUBAHAN v0.6
+- Ukuran karakter diperkecil: sprite sekarang 38 x 50 piksel dunia (sekitar 30 x 40 piksel pada zoom permainan), bukan 62 x 82.
+- Animasi berjalan diperbaiki. Sebelumnya waktu animasi dikalikan lagi sehingga frame berubah terlalu cepat; sekarang animasi menggunakan waktu nyata dan berganti 8 frame per detik.
+- Posisi gambar memakai koordinat pecahan agar perpindahan karakter dan kamera tidak terasa meloncat-loncat.
+- Gerakan pemain tidak lagi mengayunkan animasi jika tertahan oleh dinding atau objek.
+- Maryam, Amina, dan Zahra sekarang memakai atlas sprite perempuan yang benar-benar berbeda: hijab, bentuk pakaian, dan warna busananya berbeda dari sprite laki-laki.
+- Bug fallback diperbaiki: NPC perempuan tidak lagi memakai gambar Ahmad saat atlas khusus belum tersedia.
+- NPC laki-laki tetap menggunakan sprite chibi laki-laki dengan variasi pakaian.
+
+ISI GAME YANG TETAP ADA
+- Dunia 180 x 140 tile (5.760 x 4.480 piksel dunia).
+- Kota Nuraya, masjid, pasar, pelabuhan, kebun kurma, desa oasis, dan reruntuhan.
+- NPC bergerak di area aktivitasnya dan dapat diajak berbicara.
+- Collision untuk air, bangunan, pohon, batu, kios, dan objek lingkungan.
+- Masuk/keluar bangunan melalui pintu.
+- Misi kurma: bicara dengan Yusuf, beli kurma, temui Maryam, serahkan kurma, lalu dapatkan hadiah 35 koin.
+- Inventaris, jurnal, koin, jam simulasi, dan pengingat waktu salat dalam game.
+- Kontrol keyboard dan tombol sentuh untuk ponsel.
 
 STRUKTUR FOLDER
 index.html
 style.css
 script.js
+README.txt
 assets/
   chibi-teal.png
   chibi-terracotta.png
   chibi-blue.png
   chibi-ochre.png
   chibi-plum.png
+  chibi-female-sage.png
+  chibi-female-lavender.png
+  chibi-female-rose.png
 
 CARA MENJALANKAN
 1. Ekstrak ZIP.
-2. Pastikan folder assets beserta kelima file PNG tetap berada sejajar dengan index.html.
+2. Pastikan folder assets dan seluruh PNG tetap berada di samping index.html.
 3. Buka index.html di browser untuk mencoba game secara lokal.
 
 KONTROL
@@ -36,25 +47,25 @@ I                    : membuka tas
 J                    : membuka jurnal misi
 H                    : bantuan
 ESC                  : menutup jendela
-Ponsel               : gunakan tombol arah dan tombol INTERAKSI di layar
+Ponsel               : gunakan tombol arah dan tombol INTERAKSI
 
 MENYELESAIKAN MISI PERTAMA
 1. Dekati Yusuf di dekat Pasar Nuraya, lalu tekan E.
 2. Ikuti penanda emas ke Pasar Rempah Nuraya dan tekan E.
-3. Pilih tombol beli untuk 1 paket Kurma Pilihan (harga 18 koin).
-4. Ikuti penanda emas ke timur, seberangi jembatan kayu, lalu temui Maryam di kebun kurma.
+3. Beli 1 paket Kurma Pilihan seharga 18 koin.
+4. Ikuti penanda emas ke timur, seberangi jembatan kayu, lalu temui Maryam.
 5. Tekan E dan pilih "Berikan 1 paket kurma".
 6. Misi selesai dan hadiah 35 koin diberikan.
 
 GITHUB + CLOUDFLARE PAGES
-1. Ganti index.html, style.css, dan script.js lama di folder utama repository.
-2. Upload juga folder assets beserta kelima PNG di atas.
-3. Pastikan index.html berada di folder utama (root), bukan di dalam folder tambahan.
+1. Timpa index.html, style.css, dan script.js di root repository dengan file versi ini.
+2. Upload seluruh folder assets, termasuk tiga file chibi-female-*.png yang baru.
+3. Jangan meletakkan index.html di subfolder tambahan.
 4. Commit changes ke branch production (biasanya main).
-5. Cloudflare Pages akan membangun ulang website secara otomatis.
+5. Cloudflare Pages akan deploy ulang secara otomatis.
 
 CATATAN
 - Progres disimpan di localStorage browser masing-masing perangkat.
-- Penyimpanan versi sebelumnya tidak diimpor, agar misi baru dimulai dalam keadaan benar dan tidak mewarisi status misi yang rusak.
-- Jam dan waktu salat di versi ini masih berupa simulasi untuk gameplay, bukan jadwal ibadah nyata.
-- Ini prototipe HTML/CSS/JavaScript statis; belum memakai server akun atau penyimpanan lintas perangkat.
+- Jika pemain melihat karakter lama setelah deployment, lakukan hard refresh (Ctrl + F5) agar cache sprite lama dibersihkan.
+- Jam dan waktu salat masih simulasi gameplay, bukan jadwal ibadah nyata.
+- Ini prototipe statis; belum menggunakan server akun atau penyimpanan lintas perangkat.
